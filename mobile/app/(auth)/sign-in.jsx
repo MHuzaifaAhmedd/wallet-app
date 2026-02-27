@@ -13,6 +13,8 @@ export default function Page() {
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [pendingSecondFactor, setPendingSecondFactor] = useState(false);
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
 
   // Handle the submission of the sign-in form
@@ -21,6 +23,7 @@ export default function Page() {
 
     // Start the sign-in process using the email and password provided
     try {
+      setError("");
       const signInAttempt = await signIn.create({
         identifier: emailAddress,
         password,
@@ -31,10 +34,15 @@ export default function Page() {
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
         router.replace("/");
+      } else if (signInAttempt.status === "needs_second_factor") {
+        // Prepare second factor via email code and show the verification UI
+        await signIn.prepareSecondFactor({ strategy: "email_code" });
+        setPendingSecondFactor(true);
       } else {
         // If the status isn't complete, check why. User might need to
         // complete further steps.
         console.error(JSON.stringify(signInAttempt, null, 2));
+        setError("Additional verification is required to sign in.");
       }
     } catch (err) {
       if (err.errors?.[0]?.code === "form_password_incorrect") {
@@ -44,6 +52,68 @@ export default function Page() {
       }
     }
   };
+
+  // Handle the submission of the second-factor verification form
+  const onVerifySecondFactorPress = async () => {
+    if (!isLoaded) return;
+
+    try {
+      setError("");
+      const result = await signIn.attemptSecondFactor({
+        strategy: "email_code",
+        code,
+      });
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.replace("/");
+      } else {
+        console.error(JSON.stringify(result, null, 2));
+        setError("Verification could not be completed. Please try again.");
+      }
+    } catch (err) {
+      console.error(JSON.stringify(err, null, 2));
+      setError("Invalid code. Please double-check and try again.");
+    }
+  };
+
+  if (pendingSecondFactor) {
+    return (
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        extraScrollHeight={30}
+      >
+        <View style={styles.verificationContainer}>
+          <Text style={styles.verificationTitle}>Verify your sign-in</Text>
+
+          {error ? (
+            <View style={styles.errorBox}>
+              <Ionicons name="alert-circle" size={20} color={COLORS.expense} />
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity onPress={() => setError("")}>
+                <Ionicons name="close" size={20} color={COLORS.textLight} />
+              </TouchableOpacity>
+            </View>
+          ) : null}
+
+          <TextInput
+            style={[styles.verificationInput, error && styles.errorInput]}
+            value={code}
+            placeholder="Enter the code sent to your email"
+            placeholderTextColor="#9A8478"
+            onChangeText={(text) => setCode(text)}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={onVerifySecondFactorPress}>
+            <Text style={styles.buttonText}>Verify</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAwareScrollView>
+    );
+  }
 
   return (
     <KeyboardAwareScrollView

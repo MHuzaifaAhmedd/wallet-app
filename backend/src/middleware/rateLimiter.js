@@ -13,7 +13,8 @@ const rateLimiter = async (req, res, next) => {
     next();
   } catch (error) {
     console.log("Rate limit error", error);
-    next(error);
+    // Don't take down the API if rate limiting is misconfigured.
+    next();
   }
 };
 

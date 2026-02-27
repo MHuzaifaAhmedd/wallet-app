@@ -10,7 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import { useState } from "react";
-import { API_URL } from "../../constants/api";
+import { fetchApiJson } from "../../lib/api";
 import { styles } from "../../assets/styles/create.styles";
 import { COLORS } from "../../constants/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -52,7 +52,7 @@ const CreateScreen = () => {
         ? -Math.abs(parseFloat(amount))
         : Math.abs(parseFloat(amount));
 
-      const response = await fetch(`${API_URL}/transactions`, {
+      await fetchApiJson("/transactions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,12 +64,6 @@ const CreateScreen = () => {
           category: selectedCategory,
         }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.log(errorData);
-        throw new Error(errorData.error || "Failed to create transaction");
-      }
 
       Alert.alert("Success", "Transaction created successfully");
       router.back();

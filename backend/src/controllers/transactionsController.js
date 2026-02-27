@@ -1,5 +1,18 @@
 import { sql } from "../config/db.js";
 
+function logError(scope, req, error) {
+  console.error(
+    `[${new Date().toISOString()}] [${scope}] ${req.method} ${req.originalUrl}`,
+    {
+      params: req.params,
+      query: req.query,
+      body: req.body,
+      message: error?.message,
+      stack: error?.stack,
+    }
+  );
+}
+
 export async function getTransactionsByUserId(req, res) {
   try {
     const { userId } = req.params;
@@ -10,7 +23,7 @@ export async function getTransactionsByUserId(req, res) {
 
     res.status(200).json(transactions);
   } catch (error) {
-    console.log("Error getting the transactions", error);
+    logError("getTransactionsByUserId", req, error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -29,10 +42,9 @@ export async function createTransaction(req, res) {
       RETURNING *
     `;
 
-    console.log(transaction);
     res.status(201).json(transaction[0]);
   } catch (error) {
-    console.log("Error creating the transaction", error);
+    logError("createTransaction", req, error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -55,7 +67,7 @@ export async function deleteTransaction(req, res) {
 
     res.status(200).json({ message: "Transaction deleted successfully" });
   } catch (error) {
-    console.log("Error deleting the transaction", error);
+    logError("deleteTransaction", req, error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -84,7 +96,7 @@ export async function getSummaryByUserId(req, res) {
       expenses: expensesResult[0].expenses,
     });
   } catch (error) {
-    console.log("Error gettin the summary", error);
+    logError("getSummaryByUserId", req, error);
     res.status(500).json({ message: "Internal server error" });
   }
 }

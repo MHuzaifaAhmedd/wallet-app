@@ -39,15 +39,24 @@ const purpleTheme = {
 };
 
 const oceanTheme = {
-  primary: "#0277BD",
-  background: "#E1F5FE",
-  text: "#01579B",
-  border: "#B3E5FC",
-  white: "#FFFFFF",
-  textLight: "#4FC3F7",
-  expense: "#EF5350",
-  income: "#26A69A",
+  // Primary brand blue (buttons, accents)
+  primary: "#2563EB", // blue-600
+
+  // Backgrounds & surfaces
+  background: "#FFFFFF",
   card: "#FFFFFF",
+  border: "#E5E7EB", // gray-200
+
+  // Text colors
+  text: "#0F172A", // slate-900
+  textLight: "#6B7280", // gray-500
+  white: "#FFFFFF",
+
+  // Semantic colors
+  expense: "#EF4444", // red-500
+  income: "#10B981", // emerald-500
+
+  // Shadows
   shadow: "#000000",
 };
 
@@ -59,4 +68,4 @@ export const THEMES = {
 };
 
 // 👇 change this to switch theme
-export const COLORS = THEMES.coffee;
+export const COLORS = THEMES.ocean;
